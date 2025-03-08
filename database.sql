@@ -1,14 +1,21 @@
 CREATE DATABASE IF NOT EXISTS iv;
 USE iv;
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS  users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    account_name VARCHAR(100) NOT NULL,
-    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    uid VARCHAR(500) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    usdt_id VARCHAR(255),
-    ethereum_id VARCHAR(255),
-    bitcoin_id VARCHAR(255),
-    email VARCHAR(255) UNIQUE NOT NULL
+    username VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    usdt_trc20 VARCHAR(255),
+    eth_erc20 VARCHAR(255),
+    bitcoin VARCHAR(255),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    recovery_question VARCHAR(255) NOT NULL,
+    recovery_answer VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+
+

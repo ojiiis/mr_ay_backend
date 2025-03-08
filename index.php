@@ -6,8 +6,12 @@ header('Content-Type: application/json');
 // Read raw JSON input
 $raw_data = file_get_contents("php://input");
 
-// Database Connection
-$connect = mysqli_connect("localhost", "doksummz_filmhouse", "z!FO@R)PHH[T", "doksummz_filmhouse");
+//live  Database Connection
+$connect = mysqli_connect("localhost", "doksummz_iv", "2vg7oNH[;)uX", "doksummz_iv");
+
+//local Database Connection
+//$connect = mysqli_connect("localhost", "doksummz_filmhouse", "z!FO@R)PHH[T", "doksummz_filmhouse");
+
 if (!$connect) {
     die(json_encode(["status" => 0, "error" => "Database connection failed: " . mysqli_connect_error()]));
 }
@@ -23,9 +27,10 @@ $app = [];
 $app["data"] = $data;
 
 // Extract path from URL
-$spliter = "/filmhouse";
+$spliter = "/iv";
 $app["full-link"] = isset(explode($spliter, $_SERVER["REQUEST_URI"])[1]) ? explode($spliter, $_SERVER["REQUEST_URI"])[1] : "";
 $app["path"] = explode("?", $app["full-link"])[0] ?? "";
+
 
 // Extract query parameters
 $params = [];
@@ -36,55 +41,55 @@ $app["params"] = $params;
 if ($app["path"] == "/signup") {
     header("Content-Type: application/json");
 
-    // Ensure request method is POST
     if ($_SERVER["REQUEST_METHOD"] !== "POST") {
         echo json_encode(["status" => 0, "message" => "Invalid request method"]);
         exit;
     }
 
-    // Extract user data
-    $required_fields = ["account_name", "full_name", "password", "confirm_password", "email"];
+    // Check if all required fields are present
+    $required_fields = [
+        "full_name", "username", "password", "usdt_trc20", "eth_erc20",
+        "bitcoin", "email", "recovery_question", "recovery_answer"
+    ];
+    
     foreach ($required_fields as $field) {
-        if (!isset($app["data"][$field]) || empty(trim($app["data"][$field]))) {
+        if (!isset($app["data"][$field]) || empty($app["data"][$field])) {
             echo json_encode(["status" => 0, "message" => "$field is required"]);
             exit;
         }
     }
 
-    // Validate password confirmation
-    if ($app["data"]["password"] !== $app["data"]["confirm_password"]) {
-        echo json_encode(["status" => 0, "message" => "Passwords do not match"]);
-        exit;
-    }
-
-    // Hash the password
-    $hashed_password = password_hash($app["data"]["password"], PASSWORD_DEFAULT);
-
-    // Prepare user data
-    $account_name = mysqli_real_escape_string($connect, $app["data"]["account_name"]);
+    // Sanitize inputs
     $full_name = mysqli_real_escape_string($connect, $app["data"]["full_name"]);
+    $username = mysqli_real_escape_string($connect, $app["data"]["username"]);
     $email = mysqli_real_escape_string($connect, $app["data"]["email"]);
-    $usdt_id = isset($app["data"]["usdt_id"]) ? mysqli_real_escape_string($connect, $app["data"]["usdt_id"]) : null;
-    $ethereum_id = isset($app["data"]["ethereum_id"]) ? mysqli_real_escape_string($connect, $app["data"]["ethereum_id"]) : null;
-    $bitcoin_id = isset($app["data"]["bitcoin_id"]) ? mysqli_real_escape_string($connect, $app["data"]["bitcoin_id"]) : null;
+    $usdt_trc20 = mysqli_real_escape_string($connect, $app["data"]["usdt_trc20"]);
+    $eth_erc20 = mysqli_real_escape_string($connect, $app["data"]["eth_erc20"]);
+    $bitcoin = mysqli_real_escape_string($connect, $app["data"]["bitcoin"]);
+    $recovery_question = mysqli_real_escape_string($connect, $app["data"]["recovery_question"]);
+    $recovery_answer = mysqli_real_escape_string($connect, $app["data"]["recovery_answer"]);
 
-    // Check if email already exists
-    $check_email = mysqli_query($connect, "SELECT id FROM users WHERE email = '$email'");
-    if (mysqli_num_rows($check_email) > 0) {
-        echo json_encode(["status" => 0, "message" => "Email already registered"]);
+    // Hash password
+    $password_hash = password_hash($app["data"]["password"], PASSWORD_BCRYPT);
+
+    // Check if email or username already exists
+    $check_user = mysqli_query($connect, "SELECT id FROM users WHERE email='$email' OR username='$username'");
+    if (mysqli_num_rows($check_user) > 0) {
+        echo json_encode(["status" => 0, "message" => "Email or username already exists"]);
         exit;
     }
-
-    // Insert into database
-    $query = "INSERT INTO users (account_name, full_name, password_hash, usdt_id, ethereum_id, bitcoin_id, email) 
-              VALUES ('$account_name', '$full_name', '$hashed_password', '$usdt_id', '$ethereum_id', '$bitcoin_id', '$email')";
+    $uid = rand(0,9).rand(0,9) . rand(0,9) . rand(0,9) . rand(0,9) . rand(0,9) .  rand(0,9) . rand(0,9) .rand(0,9).rand(0,9) . rand(0,9) . rand(0,9) . rand(0,9) . rand(0,9) .  rand(0,9) . rand(0,9);
+    // Insert user into database
+    $query = "INSERT INTO users (uid, full_name, username, password_hash, usdt_trc20, eth_erc20, bitcoin, email, recovery_question, recovery_answer)
+              VALUES ('$uid','$full_name', '$username', '$password_hash', '$usdt_trc20', '$eth_erc20', '$bitcoin', '$email', '$recovery_question', '$recovery_answer')";
 
     if (mysqli_query($connect, $query)) {
-        echo json_encode(["status" => 1, "message" => "Signup successful"]);
+        echo json_encode(["status" => 1, "message" => "Signup successful","token"=>$uid]);
     } else {
-        echo json_encode(["status" => 0, "message" => "Database error: " . mysqli_error($connect)]);
+        echo json_encode(["status" => 0, "message" => "Signup failed, try again"]);
     }
 }
+
 
 
 if ($app["path"] == "/signin") {
