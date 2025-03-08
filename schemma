@@ -1,0 +1,33 @@
+
+POST /iv/signup
+json
+{
+    "account_name": "SamInstructor",
+    "full_name": "Samuel Ojingiri",
+    "password": "securePass123",
+    "confirm_password": "securePass123",
+    "usdt_id": "TXXXXXX123",
+    "ethereum_id": "0xABC123DEF",
+    "bitcoin_id": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+    "email": "sam@example.com"
+}
+Response (Success)
+json
+{
+    "status": 1,
+    "message": "Signup successful"
+}
+Response (Error: Email Already Exists)
+json
+{
+    "status": 0,
+    "message": "Email already registered"
+}
+Response (Error: Passwords Do Not Match)
+json
+{
+    "status": 0,
+    "message": "Passwords do not match"
+}
+
+
